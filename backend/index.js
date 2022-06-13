@@ -55,7 +55,8 @@ app.post('/user', (req, res) => {
         id: parseInt(req.body.id),
         email: req.body.email.trim(),
         first_name: req.body.first_name.trim(),
-        last_name: req.body.last_name.trim()
+        last_name: req.body.last_name.trim(),
+        avatar: req.body.avatar.trim()
     }
 
     var id = req.body.id;

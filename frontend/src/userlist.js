@@ -1,5 +1,5 @@
 import React from "react"
-import { Alert, Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
+import { Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
 
 export default class UserList extends React.Component {
 
@@ -130,6 +130,7 @@ function UserUpdate(props) {
         if (!userData.email) userData.email = props.userData.email;
         if (!userData.first_name) userData.first_name = props.userData.first_name;
         if (!userData.last_name) userData.last_name = props.userData.last_name;
+        if (!userData.avatar) userData.avatar = props.userData.avatar;
         fetch("http://localhost:8000/user", {
             method: "POST",
             headers: {
@@ -140,7 +141,8 @@ function UserUpdate(props) {
                 id: userData.id,
                 email: userData.email.trim(),
                 first_name: userData.first_name.trim(),
-                last_name: userData.last_name.trim()
+                last_name: userData.last_name.trim(),
+                avatar: userData.avatar.trim()
             })
         })
             .then((res) => res.json())
