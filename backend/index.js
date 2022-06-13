@@ -50,7 +50,7 @@ app.get("/user", (req, res) => {
 app.post('/user', (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-
+    console.log("post req received for email:" + req.body.email.trim())
     var user = {
         id: parseInt(req.body.id),
         email: req.body.email.trim(),
@@ -68,8 +68,6 @@ app.post('/user', (req, res) => {
     else {
         res.json({ status: false, message: "id " + id + " not found" });
     }
-
-
 })
 
 app.delete('/user', (req, res) => {
@@ -77,6 +75,21 @@ app.delete('/user', (req, res) => {
     var id = req.body.id;
     delete data.users[id];
     res.json({ status: true, message: "user id=" + id + " deleted" });
+})
+
+app.put('/user', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    console.log("put req received for email:" + req.body.email.trim());
+    var id = Object.keys(data.users).length + 1;
+    var user = {
+        id: id,
+        email: req.body.email.trim(),
+        first_name: req.body.first_name.trim(),
+        last_name: req.body.last_name.trim(),
+        avatar: req.body.avatar.trim()
+    }
+    data.users[id] = user;
+    res.json({ status: true, message: "user id=" + id + " added" });
 })
 
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));

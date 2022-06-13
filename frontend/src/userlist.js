@@ -1,6 +1,6 @@
 import React from "react"
-import { Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
-
+import { Fab, Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add"
 export default class UserList extends React.Component {
 
     constructor(props) {
@@ -83,10 +83,15 @@ export default class UserList extends React.Component {
 
     handleClose = (userData) => {
         this.setState({ showUserEdit: false })
+        this.getUsers();
     }
 
     handleChange = (event, value) => {
         this.setState({ page: value }, () => { this.getUsers(); })
+    }
+
+    addUser = () => {
+        this.setState({ showUserEdit: true, selUser: {} })
     }
 
     render() {
@@ -102,7 +107,9 @@ export default class UserList extends React.Component {
                 {this.state.users.length < 1 &&
                     <Typography>This page is empty ...</Typography>
                 }
-
+                <Fab color="primary" aria-label="add">
+                    <AddIcon onClick={this.addUser} />
+                </Fab>
                 <Pagination count={3} page={this.state.page} onChange={this.handleChange} />
                 <Button onClick={this.getUsers}>Refresh</Button>
                 <UserUpdate
@@ -130,9 +137,9 @@ function UserUpdate(props) {
         if (!userData.email) userData.email = props.userData.email;
         if (!userData.first_name) userData.first_name = props.userData.first_name;
         if (!userData.last_name) userData.last_name = props.userData.last_name;
-        if (!userData.avatar) userData.avatar = props.userData.avatar;
+        if (!userData.avatar) userData.avatar = (props.userData.avatar ? props.userData.avatar : '');
         fetch("http://localhost:8000/user", {
-            method: "POST",
+            method: userData.id ? "POST" : "PUT",
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
@@ -153,7 +160,7 @@ function UserUpdate(props) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <DialogTitle>Edit User Data</DialogTitle>
+            <DialogTitle>{('id' in props.userData) ? 'Edit' : 'New'} User Data</DialogTitle>
             <Stack sx={{ width: "100%" }}>
                 <TextField
                     required
