@@ -1,5 +1,6 @@
 import React from "react"
 import { Button, TextField, Stack, Alert } from "@mui/material";
+import encryptor from "./encryptor";
 
 export default class LoginForm extends React.Component {
     constructor(props) {
@@ -14,31 +15,24 @@ export default class LoginForm extends React.Component {
     }
 
     doLogin = () => {
-        fetch("http://localhost:8000/login?email=" + this.state.email.trim() + "&password=" + this.state.password.trim())
-            .then((res) => res.json())
-            .then((resJS) => {
-                console.log(resJS);
-                if (resJS.error) { this.setState({ success: false, message: resJS.error }) }
-                if (resJS.token) { this.setState({ success: true, message: "Logged in with token " + resJS.token }) }
-            })
-    }
+        this.publicKey = document.getElementById("publicKey").value;
+        this.enc = new encryptor(this.publicKey);
+        var credentials = this.enc.encrypt(JSON.stringify({
+            email: this.state.email.trim(),
+            password: this.state.password.trim()
+        }));
 
-    doLogin_direct = () => {
-        fetch("https://reqres.in/api/login", {
+        fetch("http://localhost:8000/login", {
             method: "POST",
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                email: this.state.email.trim(),
-                password: this.state.password.trim()
-            })
+            body: JSON.stringify({ credentials: credentials })
         })
             .then((res) => res.json())
             .then((resJSON) => {
-                //console.log(resJSON);
-                if (resJSON.error) { this.setState({ success: false, message: resJSON.error }) }
+                if (!resJSON.status) { this.setState({ success: false, message: resJSON.message }) }
                 if (resJSON.token) { this.setState({ success: true, message: "Logged in with token " + resJSON.token }) }
             })
     }
@@ -71,7 +65,22 @@ export default class LoginForm extends React.Component {
                     <Alert severity="success">{this.state.message}</Alert>
                 }
 
+                <input id="publicKey" type="hidden" value="-----BEGIN PUBLIC KEY-----
+                    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtUmkfa7DwEQnQMM5aS/F
+                    pCbgKThc4eJGYHJwQqim3+6KdHPHsQCKfK0Ku22WZXIySbk9TxW3Zq7eusc4wEHB
+                    4s+3ZhLJh/eSv+Cg160Zxvlm9WsnP0CTaBMfr3wRVyia1FMTbznmq5azKrbN7V1U
+                    NWD1qumApBFaPs9esQ48htgx/vGZML0mLo/wEy3w9Due7c6AuaeiXGsYpTXDbz0K
+                    KysQDtRjp9ltCX31cdycI3+DzOPAi4t8CztvFqymmTFRKkO9khV0ZwHgf4TUidC4
+                    ssx7KfTQpyWkDGv8vVrH+ALdmln8WpwARX8DHwyfF2eW2y5kIZhMo9wiNIddM3SR
+                    9kcst0EXAb8M5nlvxACyIU37VprbXHG0d408GjObcnO2p/BXqsUCh0RFp8FccNrG
+                    87a9E/inpYAgalshsotx6gUX7CNA3N5wAmIAOSwKbDKJXFXaJthpUfxvGKXhzmVF
+                    xtLi1bS0e4n2pP5H3fd2tFAsFnDp4wnboyuq+/BXW0K4eF0G6dnBCffcO5f4SN6A
+                    TrnYBhanqJ8WW+8XUevoce2mxSYnWwaOgad3vNFYAXoqll+clLg9WbtgsZx33Fpn
+                    yh7PV0VZGIvl2kFsjwIpuNaNBnfJ1xDrSo+4zB/0EfBNKqeD37SUxj1gX4jTLrWZ
+                    mYAS1Do/DanESVjJUI0betcCAwEAAQ==
+                    -----END PUBLIC KEY-----"/>
             </Stack>
+
         )
     }
 }

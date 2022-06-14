@@ -2,6 +2,8 @@ var data = require('./data');
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const jsencrypt = require('node-jsencrypt');
+const fs = require('fs');
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -45,6 +47,45 @@ app.get("/user", (req, res) => {
             res.json({ status: false, message: "no data on page " + page });
         }
     }
+})
+
+app.post('/login', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+
+    var privateKey = fs.readFileSync('./private.pem').toString('utf8');
+    var jsenc = new jsencrypt();
+    jsenc.setPrivateKey(privateKey);
+    var credentials = JSON.parse(jsenc.decrypt(req.body.credentials));
+
+
+    if (!('email' in credentials)) {
+        res.json({ status: false, message: "email is required" });
+        return;
+    }
+
+    if (!('password' in credentials)) {
+        res.json({ status: false, message: "password is required" });
+        return;
+    }
+
+    var email = credentials.email.trim();
+    var password = credentials.password.trim();
+
+    console.log("login req received for email:" + email);
+
+    if (password == '') {
+        res.json({ status: false, message: "password is required" });
+        return;
+    }
+
+    for (const id in data.users) {
+        if (data.users[id].email == email) {
+            res.json({ status: true, message: "login successful", token: Math.random().toString().substr(2, 8) });
+            return;
+        }
+    }
+
+    res.json({ status: false, message: "user not found" });
 })
 
 app.post('/user', (req, res) => {
