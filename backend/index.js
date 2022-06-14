@@ -5,6 +5,10 @@ const app = express();
 const jsencrypt = require('node-jsencrypt');
 const fs = require('fs');
 
+const privateKey = fs.readFileSync('./private.pem').toString('utf8');
+const jsenc = new jsencrypt();
+jsenc.setPrivateKey(privateKey);
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -51,10 +55,6 @@ app.get("/user", (req, res) => {
 
 app.post('/login', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-
-    var privateKey = fs.readFileSync('./private.pem').toString('utf8');
-    var jsenc = new jsencrypt();
-    jsenc.setPrivateKey(privateKey);
     var credentials = JSON.parse(jsenc.decrypt(req.body.credentials));
 
 
