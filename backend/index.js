@@ -36,7 +36,7 @@ app.get("/user", (req, res) => {
 
     if (page <= 0 || !page) {
         console.log("req for all pages");
-        res.json({ status: true, message: "data for all users", data: Object.values(data.users) })
+        res.json({ status: true, message: "data for all users", data: Object.values(data.users), pageCount: Math.ceil(Object.keys(data.users).length / pageSize) })
     }
     else {
         console.log("req for page: " + page);
@@ -45,7 +45,7 @@ app.get("/user", (req, res) => {
         console.log("returning data from " + pFrom + " to " + pTo);
         var pageUsers = Object.values(data.users).slice(pFrom, pTo);
         if (pageUsers.length > 0) {
-            res.json({ status: true, message: "data for page " + page, data: pageUsers });
+            res.json({ status: true, message: "data for page " + page, data: pageUsers, pageCount: Math.ceil(Object.keys(data.users).length / pageSize) });
         }
         else {
             res.json({ status: false, message: "no data on page " + page });

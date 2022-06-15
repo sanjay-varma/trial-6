@@ -1,41 +1,42 @@
 import React from "react"
-import { Fab, Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
+import { useState, useEffect, useCallback } from "react";
+import { Alert, Fab, Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add"
-export default class UserList extends React.Component {
 
-    constructor(props) {
-        super(props);
+export default function UserList(props) {
 
-        this.state = { users: [], page: 1, showUserEdit: false, selUser: {} }
-    }
+    const [page, setPage] = useState(1);
+    const [pageCount, setPageCount] = useState(1);
+    const [showUserEdit, setShowUserEdit] = useState(false);
+    const [users, setUsers] = useState([]);
+    const [selUser, setSelUser] = useState({});
 
-    componentDidMount = () => {
-        this.getUsers();
-    }
-
-    getUsers = () => {
-        fetch("http://localhost:8000/user?page=" + this.state.page)
+    const getUsers = useCallback(() => {
+        fetch("http://localhost:8000/user?page=" + page)
             .then((res) => res.json())
             .then((resJson) => {
-                this.setState({
-                    users: resJson.data
-                })
+                setUsers(resJson.data);
+                setPageCount(resJson.pageCount);
             })
-    }
+    }, [page])
 
-    showUsers = (user, index) => {
+    useEffect(() => {
+        getUsers();
+    }, [getUsers]);
+
+    const showUsers = (user, index) => {
         return (
             <ListItem
                 key={user.id}
                 secondaryAction={
                     <Box>
-                        <IconButton onClick={() => this.editUserClick(user)} edge="end" aria-label="delete">
+                        <IconButton onClick={() => editUserClick(user)} edge="end" aria-label="delete">
                             <Icon>edit</Icon>
                         </IconButton>
-                        <IconButton onClick={() => this.hideUser(index)} edge="end" aria-label="delete">
+                        <IconButton onClick={() => hideUser(index)} edge="end" aria-label="delete">
                             <Icon>clear</Icon>
                         </IconButton>
-                        <IconButton onClick={() => this.delUser(index, user)} edge="end" aria-label="delete">
+                        <IconButton onClick={() => delUser(index, user)} edge="end" aria-label="delete">
                             <Icon>delete_forrever</Icon>
                         </IconButton>
                     </Box>
@@ -50,17 +51,16 @@ export default class UserList extends React.Component {
                     </Link>}
                 />
             </ListItem>
-
         )
     }
 
-    hideUser = (index) => {
-        var u = this.state.users;
+    const hideUser = (index) => {
+        var u = users;
         u.splice(index, 1);
-        this.setState({ users: u });
+        setUsers(u.slice());
     }
 
-    delUser = (index, user) => {
+    const delUser = (index, user) => {
 
         fetch("http://localhost:8000/user", {
             method: "DELETE",
@@ -73,52 +73,76 @@ export default class UserList extends React.Component {
             })
         })
             .then(() => {
-                this.hideUser(index);
+                hideUser(index);
             })
     }
 
-    editUserClick = (user) => {
-        this.setState({ showUserEdit: true, selUser: user })
+    const editUserClick = (user) => {
+        setShowUserEdit(true);
+        setSelUser(user);
     }
 
-    handleClose = (userData) => {
-        this.setState({ showUserEdit: false })
-        this.getUsers();
+    const handleClose = (userData) => {
+        setShowUserEdit(false);
+        getUsers();
     }
 
-    handleChange = (event, value) => {
-        this.setState({ page: value }, () => { this.getUsers(); })
+    const handleChange = (event, value) => {
+        setPage(value);
+        getUsers();
     }
 
-    addUser = () => {
-        this.setState({ showUserEdit: true, selUser: {} })
+    const addUser = () => {
+        setShowUserEdit(true);
+        setSelUser({});
     }
 
-    render() {
+    const [userFound, setUserFound] = useState(false);
+    const [showMessage, setShowMessage] = useState(false);
+    const checkUsers = (inputString) => {
+        setShowMessage(inputString.trim() !== "");
+        setUserFound(users.some((user) => {
+            return (user.email.search(inputString) >= 0 ||
+                user.first_name.search(inputString) >= 0 ||
+                user.last_name.search(inputString) >= 0)
+        }))
+    }
 
-        return (
-            <div>
-
-                <Typography>Page: {this.state.page}</Typography>
-
-                <List sx={{ width: "60%" }}>
-                    {this.state.users.map(this.showUsers)}
-                </List>
-                {this.state.users.length < 1 &&
-                    <Typography>This page is empty ...</Typography>
+    return (
+        <div>
+            <Stack>
+                <Typography>Page: {page}</Typography>
+                <TextField
+                    required
+                    id="outlined-required"
+                    label="Search in page"
+                    defaultValue=""
+                    onChange={(e) => { checkUsers(e.target.value) }}
+                />
+                {showMessage &&
+                    <Alert severity="info">Match {userFound ? "" : "not"} found</Alert>
                 }
-                <Fab color="primary" aria-label="add">
-                    <AddIcon onClick={this.addUser} />
-                </Fab>
-                <Pagination count={3} page={this.state.page} onChange={this.handleChange} />
-                <Button onClick={this.getUsers}>Refresh</Button>
-                <UserUpdate
-                    userData={this.state.selUser}
-                    open={this.state.showUserEdit}
-                    onClose={this.handleClose} />
-            </div >
-        )
-    }
+            </Stack>
+
+
+            <List sx={{ width: "60%" }}>
+                {users.map(showUsers)}
+            </List>
+            {users.length < 1 &&
+                <Typography>This page is empty ...</Typography>
+            }
+            <Fab color="primary" aria-label="add">
+                <AddIcon onClick={addUser} />
+            </Fab>
+            <Pagination count={pageCount} page={page} onChange={handleChange} />
+            <Button onClick={getUsers}>Refresh</Button>
+            <UserUpdate
+                userData={selUser}
+                open={showUserEdit}
+                onClose={handleClose} />
+        </div >
+    )
+
 }
 
 
