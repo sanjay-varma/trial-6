@@ -15,8 +15,8 @@ export default function UserList(props) {
         fetch("http://localhost:8000/user?page=" + page)
             .then((res) => res.json())
             .then((resJson) => {
-                setUsers(resJson.data);
                 setPageCount(resJson.pageCount);
+                setUsers(resJson.data);
             })
     }, [page])
 
@@ -124,10 +124,10 @@ export default function UserList(props) {
                 }
             </Stack>
 
-
             <List sx={{ width: "60%" }}>
                 {users.map(showUsers)}
             </List>
+
             {users.length < 1 &&
                 <Typography>This page is empty ...</Typography>
             }

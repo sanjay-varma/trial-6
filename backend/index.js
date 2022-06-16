@@ -28,7 +28,7 @@ app.get("/user", (req, res) => {
             res.json({ status: true, message: "data for user: " + id, data: user });
         }
         else {
-            res.json({ status: false, message: "no data found for id " + id });
+            res.json({ status: false, message: "no data found for id " + id, data: [] });
         }
 
         return;
@@ -48,7 +48,7 @@ app.get("/user", (req, res) => {
             res.json({ status: true, message: "data for page " + page, data: pageUsers, pageCount: Math.ceil(Object.keys(data.users).length / pageSize) });
         }
         else {
-            res.json({ status: false, message: "no data on page " + page });
+            res.json({ status: false, message: "no data on page " + page, data: [] });
         }
     }
 })
