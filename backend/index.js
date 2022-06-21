@@ -12,7 +12,14 @@ jsenc.setPrivateKey(privateKey);
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.listen("8000", () => { console.log("listening on port 8000") })
+data.connect()
+    .then(() => {
+        console.log("connected to database")
+        app.listen("8000", () => { console.log("listening on port 8000") })
+    })
+    .catch((err) => {
+        console.error("failed to connect to database : ", err)
+    })
 
 const pageSize = 5;
 app.get("/user", (req, res) => {
@@ -100,28 +107,35 @@ app.post('/user', (req, res) => {
         avatar: req.body.avatar.trim()
     }
 
-    var id = req.body.id;
-    if (data.users[id]) {
-        data.users[id] = user;
-        res.json({ status: true, message: "data saved" });
-    }
-
-    else {
-        res.json({ status: false, message: "id " + id + " not found" });
-    }
+    data.put_user(user)
+        .then((id) => {
+            res.json({ status: true, message: `id=${id} saved` });
+        })
+        .catch((err) => {
+            console.error(`id=${id} save failed `, err);
+            res.json({ status: false, message: `id=${id} save failed` });
+        })
 })
 
 app.delete('/user', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
     var id = req.body.id;
-    delete data.users[id];
-    res.json({ status: true, message: "user id=" + id + " deleted" });
+    console.log(`delete req received for id: ${id}`)
+    data.del_user(id)
+        .then(() => {
+            res.json({ status: true, message: "user id=" + id + " deleted" });
+        })
+        .catch((err) => {
+            console.error(`id=${id} delete failed `, err)
+            res.json({ status: false, message: `id=${id} delete failed` });
+        })
+
 })
 
 app.put('/user', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
     console.log("put req received for email:" + req.body.email.trim());
-    var id = Object.keys(data.users).length + 1;
+    var id = null;
     var user = {
         id: id,
         email: req.body.email.trim(),
@@ -129,8 +143,13 @@ app.put('/user', (req, res) => {
         last_name: req.body.last_name.trim(),
         avatar: req.body.avatar.trim()
     }
-    data.users[id] = user;
-    res.json({ status: true, message: "user id=" + id + " added" });
+    data.put_user(user)
+        .then((id) => {
+            res.json({ status: true, message: "user id=" + id + " added" });
+        })
+        .catch((err) => {
+            res.json({ status: false, message: `failed to add email=${req.body.email}` });
+        })
 })
 
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
