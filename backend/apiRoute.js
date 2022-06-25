@@ -9,12 +9,6 @@ jsenc.setPrivateKey(privateKey);
 
 const { user } = require('./models');
 
-user.findAll()
-    .then((u) => {
-        users = u.map((d) => { return d.dataValues })
-        console.log("Users:", users);
-    })
-
 const pageSize = 5;
 router.get("/user", (req, res) => {
     var page = parseInt(req.query.page);
