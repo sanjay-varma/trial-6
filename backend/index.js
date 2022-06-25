@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
+const data = require('./data')
 const models = require('./models')
 const router = express.Router();
 const apiRoute = require('./apiRoute')
@@ -12,15 +13,14 @@ app.use(express.json());
 app.use(express.static('../frontend/build'));
 app.use('/api', apiRoute);
 
-let users;
 const { user } = require('./models');
 models.sequelize.sync()
     .then(() => {
         console.log("connected to database")
         user.findAll()
             .then((u) => {
-                users = u.map((d) => { return d.dataValues })
-                console.log(`loaded ${users.length} users`);
+                data.users = u.map((d) => { return d.dataValues })
+                console.log(`loaded ${data.users.length} users`);
                 app.listen("8000", () => { console.log("listening on port 8000") })
             })
     })

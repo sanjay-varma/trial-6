@@ -7,6 +7,8 @@ const privateKey = fs.readFileSync('./private.pem').toString('utf8');
 const jsenc = new jsencrypt();
 jsenc.setPrivateKey(privateKey);
 
+const data = require('./data')
+
 const { user } = require('./models');
 
 const pageSize = 5;
@@ -16,7 +18,7 @@ router.get("/user", (req, res) => {
 
     if (id >= 0) {
         console.log("req for id: " + id);
-        var u = users[id];
+        var u = data.users[id];
 
         if (u) {
             res.json({ status: true, message: "data for user: " + id, data: u });
@@ -30,16 +32,16 @@ router.get("/user", (req, res) => {
 
     if (page <= 0 || !page) {
         console.log("req for all pages");
-        res.json({ status: true, message: "data for all users", data: Object.values(users), pageCount: Math.ceil(Object.keys(users).length / pageSize) })
+        res.json({ status: true, message: "data for all users", data: Object.values(data.users), pageCount: Math.ceil(Object.keys(data.users).length / pageSize) })
     }
     else {
         console.log("req for page: " + page);
         var pFrom = pageSize * (page - 1);
         var pTo = pageSize * page;
         console.log("returning data from " + pFrom + " to " + pTo);
-        var pageUsers = Object.values(users).slice(pFrom, pTo);
+        var pageUsers = Object.values(data.users).slice(pFrom, pTo);
         if (pageUsers.length > 0) {
-            res.json({ status: true, message: "data for page " + page, data: pageUsers, pageCount: Math.ceil(Object.keys(users).length / pageSize) });
+            res.json({ status: true, message: "data for page " + page, data: pageUsers, pageCount: Math.ceil(Object.keys(data.users).length / pageSize) });
         }
         else {
             res.json({ status: false, message: "no data on page " + page, data: [] });
@@ -71,8 +73,8 @@ router.post('/login', (req, res) => {
         return;
     }
 
-    for (const id in users) {
-        if (users[id].email == email) {
+    for (const id in data.users) {
+        if (data.users[id].email == email) {
             res.json({ status: true, message: "login successful", token: Math.random().toString().substr(2, 8) });
             return;
         }
@@ -99,7 +101,7 @@ router.post('/user', (req, res) => {
         avatar: u.avatar
     }, { where: { 'id': u.id } })
         .then(() => {
-            users[u.id] = u;
+            data.users[u.id] = u;
             res.json({ status: true, message: `id=${u.id} updated` });
         })
         .catch((err) => {
@@ -114,7 +116,7 @@ router.delete('/user', (req, res) => {
     console.log(`delete req received for id: ${id}`)
     user.destroy({ where: { 'id': id } })
         .then(() => {
-            delete users[id];
+            delete data.users[id];
             res.json({ status: true, message: `user id=${id} deleted` });
         })
         .catch((err) => {
@@ -143,7 +145,7 @@ router.put('/user', (req, res) => {
     })
         .then((i) => {
             u.id = i.dataValues.id;
-            users[u.id] = u;
+            data.users[u.id] = u;
             res.json({ status: true, message: "user id=" + id + " added" });
         })
         .catch((err) => {
