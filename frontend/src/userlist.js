@@ -12,7 +12,7 @@ export default function UserList(props) {
     const [selUser, setSelUser] = useState({});
 
     const getUsers = useCallback(() => {
-        fetch("http://localhost:8000/user?page=" + page)
+        fetch("/api/user?page=" + page)
             .then((res) => res.json())
             .then((resJson) => {
                 setPageCount(resJson.pageCount);
@@ -62,7 +62,7 @@ export default function UserList(props) {
 
     const delUser = (index, user) => {
 
-        fetch("http://localhost:8000/user", {
+        fetch("/api/user", {
             method: "DELETE",
             headers: {
                 Accept: 'application/json',
@@ -162,7 +162,7 @@ function UserUpdate(props) {
         if (!userData.first_name) userData.first_name = props.userData.first_name;
         if (!userData.last_name) userData.last_name = props.userData.last_name;
         if (!userData.avatar) userData.avatar = (props.userData.avatar ? props.userData.avatar : '');
-        fetch("http://localhost:8000/user", {
+        fetch("/api/user", {
             method: userData.id ? "POST" : "PUT",
             headers: {
                 Accept: 'application/json',

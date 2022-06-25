@@ -22,7 +22,7 @@ export default class LoginForm extends React.Component {
             password: this.state.password.trim()
         }));
 
-        fetch("http://localhost:8000/login", {
+        fetch("http://localhost:8000/api/login", {
             method: "POST",
             headers: {
                 Accept: 'application/json',
