@@ -1,6 +1,6 @@
 import React from "react"
 import { useState, useEffect, useCallback } from "react";
-import { Alert, Fab, Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
+import { MenuItem, InputLabel, FormControl, Select, Alert, Fab, Dialog, DialogTitle, Stack, Box, TextField, Button, List, ListItem, Link, ListItemAvatar, ListItemText, IconButton, Icon, Avatar, Typography, Pagination } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add"
 
 export default function UserList(props) {
@@ -9,6 +9,7 @@ export default function UserList(props) {
     const [pageCount, setPageCount] = useState(1);
     const [showUserEdit, setShowUserEdit] = useState(false);
     const [users, setUsers] = useState([]);
+    const [groups, setGroups] = useState([]);
     const [selUser, setSelUser] = useState({});
 
     const getUsers = useCallback(() => {
@@ -17,6 +18,11 @@ export default function UserList(props) {
             .then((resJson) => {
                 setPageCount(resJson.pageCount);
                 setUsers(resJson.data);
+            })
+        fetch("/api/group")
+            .then((res) => res.json())
+            .then((resJson) => {
+                setGroups(resJson.data);
             })
     }, [page])
 
@@ -46,9 +52,24 @@ export default function UserList(props) {
                 </ListItemAvatar>
                 <ListItemText
                     primary={user.first_name + " " + user.last_name}
-                    secondary={<Link href={"mailto:" + user.email} underline="hover">
-                        {user.email}
-                    </Link>}
+                    secondary={
+                        <React.Fragment>
+                            <Typography
+                                sx={{ display: 'inline' }}
+                                component="span"
+                                variant="body2"
+                                color="green"
+                            >
+                                {user.group.name}
+                            </Typography>
+                            <Link
+                                sx={{ 'margin-left': '5px' }}
+                                href={"mailto:" + user.email}
+                                underline="hover">
+                                {user.email}
+                            </Link>
+                        </React.Fragment>
+                    }
                 />
             </ListItem>
         )
@@ -138,6 +159,7 @@ export default function UserList(props) {
             <Button onClick={getUsers}>Refresh</Button>
             <UserUpdate
                 userData={selUser}
+                groups={groups}
                 open={showUserEdit}
                 onClose={handleClose} />
         </div >
@@ -148,8 +170,22 @@ export default function UserList(props) {
 
 function UserUpdate(props) {
 
-    const open = props.open;
-    const userData = props.userData;
+    const open = props.open
+
+    const [user, setUser] = useState({});
+    const userData = {};
+
+    useEffect(() => {
+        userData.id = props.userData.id;
+        userData.email = props.userData.email;
+        userData.first_name = props.userData.first_name;
+        userData.last_name = props.userData.last_name;
+        userData.group_id = props.userData.group_id;
+        userData.group = props.groups.find(g => g.id == props.userData.group_id);
+        setUser(userData);
+    })
+
+    const groups = props.groups;
     const onClose = props.onClose;
 
     const handleClose = (value) => {
@@ -157,24 +193,22 @@ function UserUpdate(props) {
     };
 
     const saveData = () => {
-        userData.id = props.userData.id;
-        if (!userData.email) userData.email = props.userData.email;
-        if (!userData.first_name) userData.first_name = props.userData.first_name;
-        if (!userData.last_name) userData.last_name = props.userData.last_name;
-        if (!userData.avatar) userData.avatar = (props.userData.avatar ? props.userData.avatar : '');
+        userData.id = user.id;
+        userData.group_id = user.group_id;
+        userData.email = user.email.trim();
+        userData.first_name = user.first_name.trim();
+        userData.last_name = user.last_name.trim();
+        userData.avatar = user.avatar ? user.avatar.trim() : '';
+        userData.group = user.group;
+        console.log("saveData ", userData);
+
         fetch("/api/user", {
             method: userData.id ? "POST" : "PUT",
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                id: userData.id,
-                email: userData.email.trim(),
-                first_name: userData.first_name.trim(),
-                last_name: userData.last_name.trim(),
-                avatar: userData.avatar.trim()
-            })
+            body: JSON.stringify(userData)
         })
             .then((res) => res.json())
             .then((resJS) => {
@@ -190,21 +224,39 @@ function UserUpdate(props) {
                     required
                     id="outlined-required"
                     label="Email"
-                    defaultValue={props.userData.email}
-                    onChange={(e) => { userData.email = e.target.value }}
+                    defaultValue={user.email}
+                    onChange={(e) => { userData.email = e.target.value; setUser(userData) }}
                 />
                 <TextField
                     id="outlined-required"
                     label="First Name"
-                    defaultValue={props.userData.first_name}
-                    onChange={(e) => { userData.first_name = e.target.value }}
+                    defaultValue={user.first_name}
+                    onChange={(e) => { userData.first_name = e.target.value; setUser(userData) }}
                 />
                 <TextField
                     id="outlined-required"
                     label="Last Name"
-                    defaultValue={props.userData.last_name}
-                    onChange={(e) => { userData.last_name = e.target.value }}
+                    defaultValue={user.last_name}
+                    onChange={(e) => { userData.last_name = e.target.value; setUser(userData) }}
                 />
+                <FormControl fullWidth>
+                    <InputLabel id="select-group-label">Group</InputLabel>
+                    <Select
+                        labelId="select-group-label"
+                        id="select-group"
+                        value={user.group_id}
+                        label="Group"
+                        onChange={(e) => {
+                            userData.group_id = e.target.value;
+                            userData.group = groups.find(g => g.id == userData.group_id);
+                            setUser(userData)
+                        }}
+                    >
+                        {groups.map((g) => {
+                            return <MenuItem value={g.id}>{g.name}</MenuItem>
+                        })}
+                    </Select>
+                </FormControl>
                 <Button onClick={saveData}>Save</Button>
             </Stack>
         </Dialog>

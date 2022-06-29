@@ -1,3 +1,5 @@
+const group = require("./group");
+
 module.exports = (sequelize, DataTypes) => {
     const user = sequelize.define("user", {
         email: {
@@ -30,5 +32,16 @@ module.exports = (sequelize, DataTypes) => {
         freezeTableName: true
     })
 
+    user.associate = (models) => {
+        user.belongsTo(models.group, {
+            onDelete: 'RESTRICT',
+            onUpdate: 'RESTRICT',
+            foreignKey: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                name: 'group_id'
+            }
+        })
+    }
     return user;
 }

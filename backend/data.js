@@ -1,3 +1,4 @@
 let users = {}
+let groups = {}
 
-module.exports = { users }
+module.exports = { users, groups }

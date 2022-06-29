@@ -9,7 +9,7 @@ jsenc.setPrivateKey(privateKey);
 
 const data = require('./data')
 
-const { user } = require('./models');
+const { user, group } = require('./models');
 
 const pageSize = 5;
 router.get("/user", (req, res) => {
@@ -47,6 +47,10 @@ router.get("/user", (req, res) => {
             res.json({ status: false, message: "no data on page " + page, data: [] });
         }
     }
+})
+
+router.get('/group', (req, res) => {
+    res.json({ status: true, message: "list of groups", data: data.groups });
 })
 
 router.post('/login', (req, res) => {
@@ -91,6 +95,8 @@ router.post('/user', (req, res) => {
         email: req.body.email.trim(),
         first_name: req.body.first_name.trim(),
         last_name: req.body.last_name.trim(),
+        group_id: req.body.group_id,
+        group: data.groups[req.body.group_id],
         avatar: req.body.avatar.trim()
     }
 
@@ -98,6 +104,7 @@ router.post('/user', (req, res) => {
         email: u.email,
         first_name: u.first_name,
         last_name: u.last_name,
+        group_id: u.group_id,
         avatar: u.avatar
     }, { where: { 'id': u.id } })
         .then(() => {
@@ -133,6 +140,8 @@ router.put('/user', (req, res) => {
         email: req.body.email.trim(),
         first_name: req.body.first_name.trim(),
         last_name: req.body.last_name.trim(),
+        group_id: req.body.group_id,
+        group: data.groups[req.body.group_id],
         avatar: req.body.avatar.trim()
     }
 
@@ -141,12 +150,13 @@ router.put('/user', (req, res) => {
         email: u.email,
         first_name: u.first_name,
         last_name: u.last_name,
+        group_id: u.group_id,
         avatar: u.avatar
     })
         .then((i) => {
             u.id = i.dataValues.id;
             data.users[u.id] = u;
-            res.json({ status: true, message: "user id=" + id + " added" });
+            res.json({ status: true, message: `user id=${id} added` });
         })
         .catch((err) => {
             console.error(err);
